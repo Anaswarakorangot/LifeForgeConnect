@@ -23,7 +23,7 @@
 
 ## 💔 The Crisis No One Is Talking About
 
-> Every **12 minutes**, someone in India dies waiting for an organ that exists — just not where they need it.
+> Every urgent match matters when blood, platelet, thalassemia, or donor milk support exists — just not where the patient needs it.
 
 India faces one of the world's most devastating healthcare coordination failures. The numbers are not statistics. They are people.
 
@@ -35,7 +35,7 @@ India faces one of the world's most devastating healthcare coordination failures
 
 The tragedy? **Donors exist. Patients exist. The bridge doesn't.**
 
-Donation in India is fragmented across siloed hospital databases, disconnected NGOs, desperate WhatsApp forwards, and outdated paper registries. When someone needs rare blood in Coimbatore and a viable donor is in Pune, no system connects them in time. The critical window passes. The patient dies.
+Donation and care coordination in India are fragmented across siloed hospital databases, disconnected NGOs, desperate WhatsApp forwards, and outdated paper registries. When someone needs rare blood, platelets, thalassemia transfusion support, or donor milk, no system connects them in time. The critical window passes. Patients are left waiting.
 
 **LifeForge Connect is built to end this.**
 
@@ -43,12 +43,12 @@ Donation in India is fragmented across siloed hospital databases, disconnected N
 
 ## 🧬 What Is LifeForge Connect?
 
-**LifeForge Connect** is a unified, AI-powered donor-patient matching ecosystem that brings together every form of life-saving donation under one intelligent platform.
+**LifeForge Connect** is a unified, AI-powered donor-patient matching ecosystem focused on four life-saving pathways: **BloodBridge**, **PlateletAlert**, **ThalCare**, and **MilkBridge**.
 
 We don't just match donors to patients. We **predict shortages before they happen**, **calculate transport viability within golden hour windows**, and **proactively build donor pipelines** so no patient ever hits a dead end.
 
 ```
-Blood  ·  Platelets  ·  Plasma  ·  Human Breast Milk
+BloodBridge  ·  PlateletAlert  ·  ThalCare  ·  MilkBridge
                               ↓
                     [ LifeForge Connect ]
                               ↓
@@ -63,7 +63,7 @@ Blood  ·  Platelets  ·  Plasma  ·  Human Breast Milk
 Our ML model doesn't wait for a crisis — it **predicts blood and platelet shortages** up to 72 hours in advance using hospital consumption patterns, local event data, seasonal trends, and historical demand signals. Shortages are prevented, not reacted to.
 
 ### ⚡ Real-Time Compatibility Scoring
-Multi-parameter matching across blood type, HLA markers, geographical proximity, donor health history, and recipient urgency level — returning ranked compatible donors **in under 3 seconds**.
+Multi-parameter matching across blood type, geographical proximity, donor health history, recurring transfusion needs, and recipient urgency level — returning ranked compatible donors **in under 3 seconds**.
 
 ### 📊 Live Shortage Intelligence Dashboard
 A public-facing, real-time heatmap of donation demand and supply across Indian cities — giving hospitals, NGOs, and health authorities actionable intelligence to mobilize faster.
