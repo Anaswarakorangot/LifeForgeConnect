@@ -125,6 +125,17 @@ create table if not exists milk_donors (
   health_score          integer default 70,
   test_doc_url          text,
   is_available          boolean default true,
+  pincode               text,
+  city                  text,
+  screening_status      text default 'pending',   -- 'pending' | 'cleared' | 'rejected'
+  screening_date        date,
+  availability_start    time default '08:00',
+  availability_end      time default '20:00',
+  is_anonymous          boolean default false,
+  lat                   float,
+  lng                   float,
+  mobile                text,
+  last_donation_date    date,
   created_at            timestamptz default now()
 );
 
@@ -133,7 +144,14 @@ create table if not exists milk_requests (
   hospital_id        uuid references hospitals(id) on delete set null,
   infant_name        text,
   daily_quantity_ml  integer,
+  volume_needed_ml   integer,
   status             text default 'open',
+  urgency            text default 'normal',      -- 'critical' | 'urgent' | 'normal'
+  pincode            text,
+  lat                float,
+  lng                float,
+  matched_at         timestamptz,
+  fulfilled_at       timestamptz,
   created_at         timestamptz default now()
 );
 
