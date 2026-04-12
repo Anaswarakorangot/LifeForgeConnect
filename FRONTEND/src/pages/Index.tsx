@@ -45,28 +45,6 @@ const modules = [
     stats: "48hr match",
   },
   {
-    emoji: "🧬",
-    name: "MarrowMatch",
-    tagline: "HLA precision matching",
-    description: "Instant HLA similarity scoring for bone marrow transplants. Anonymized donor-patient journey with confidence percentage.",
-    path: "/marrow-match",
-    color: "text-marrow",
-    bgColor: "bg-marrow",
-    borderColor: "border-marrow/20",
-    stats: "94% accuracy",
-  },
-  {
-    emoji: "🫁",
-    name: "LastGift",
-    tagline: "Organ donation, dignified",
-    description: "Digital organ pledge with family OTP consent. Brain-death protocol integration, viability window timers, and ranked recipient matching.",
-    path: "/last-gift",
-    color: "text-organ",
-    bgColor: "bg-organ",
-    borderColor: "border-organ/20",
-    stats: "6 organ types",
-  },
-  {
     emoji: "🍼",
     name: "MilkBridge",
     tagline: "Nourishing premature lives",
@@ -179,9 +157,9 @@ export default function Index() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="font-body text-lg md:text-xl text-primary-foreground/80 leading-relaxed max-w-xl mb-8"
             >
-              Blood · Platelets · Bone Marrow · Plasma · Organs · Mother's Milk.
+              Blood · Platelets · Plasma · Mother's Milk.
               <br />
-              Six modules. One platform. Zero delays. <strong className="text-accent">Thousands saved daily.</strong>
+              Four modules. One platform. Zero delays. <strong className="text-accent">Thousands saved daily.</strong>
             </motion.p>
 
             <motion.div
@@ -276,7 +254,7 @@ export default function Index() {
             className="text-center mb-14"
           >
             <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Six Modules,{" "}
+              Four Modules,{" "}
               <span className="gradient-text">One Mission</span>
             </h2>
             <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -284,7 +262,7 @@ export default function Index() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {modules.map((mod, i) => (
               <ModuleCard key={mod.name} {...mod} index={i} />
             ))}
@@ -363,10 +341,10 @@ export default function Index() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { stat: "5 lakh+", label: "Need bone marrow annually", icon: "🧬" },
               { stat: "4.2 lakh", label: "Thalassemia patients in India", icon: "💉" },
               { stat: "27 million", label: "Premature babies need donor milk", icon: "🍼" },
-              { stat: "< 6 hrs", label: "Heart viability window", icon: "❤️" },
+              { stat: "2.3M", label: "Active blood donors", icon: "🩸" },
+              { stat: "48hr", label: "Average platelet match time", icon: "⏱️" },
             ].map(({ stat, label, icon }) => (
               <motion.div
                 key={label}
