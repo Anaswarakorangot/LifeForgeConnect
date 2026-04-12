@@ -146,14 +146,23 @@ def get_milk_donors(
         if lat and lng and donor.get("lat") and donor.get("lng"):
             distance_km = haversine(lat, lng, donor["lat"], donor["lng"])
 
+        is_anonymous = md.get("is_anonymous", False)
+        display_name = (
+            f"Donor #{str(md['id'])[:8]}"
+            if is_anonymous
+            else donor.get("name", "Anonymous Donor")
+        )
+
         results.append({
             "id":              md["id"],
             "donor_id":        md.get("donor_id"),
-            "name":            donor.get("name", "Anonymous Donor"),
+            "name":            display_name,
             "babyAge":         f"{age_m} months" if age_m is not None else "",
             "qty":             f"{qty}ml/day" if qty else "",
             "area":            donor.get("city", ""),
             "verified":        donor.get("is_verified", False),
+            "is_screened":     md.get("screening_status") == "cleared",
+            "is_anonymous":    is_anonymous,
             "impact":          impact_label,
             "trust_score":     donor.get("trust_score", 50),
             "distance_km":     distance_km,
@@ -445,20 +454,37 @@ def register_milk_donor(body: MilkDonorBody):
     Register or update a milk donor profile.
     Handles duplicates gracefully by updating existing records.
     """
+    # Validate donor_id is not empty
+    if not body.donor_id or not body.donor_id.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="donor_id is missing. Please log in again and retry."
+        )
+
+    logger.info(f"[register-donor] Received donor_id='{body.donor_id}'")
+
     # Validate donor_id exists in donors table
+    # Use .limit(1) instead of .single() to avoid exception on 0 rows
     try:
         donor_check = supabase.table("donors") \
             .select("id, name, city, pincode, mobile") \
             .eq("id", body.donor_id) \
-            .single() \
+            .limit(1) \
             .execute()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid donor ID. Please register as a donor first.")
+    except Exception as e:
+        logger.error(f"[register-donor] DB error checking donor_id='{body.donor_id}': {e}")
+        raise HTTPException(status_code=500, detail="Database error. Please try again.")
 
     if not donor_check.data:
-        raise HTTPException(status_code=400, detail="Donor not found. Please register as a donor first.")
+        logger.warning(f"[register-donor] donor_id='{body.donor_id}' not found in donors table")
+        raise HTTPException(
+            status_code=400,
+            detail=f"No donor profile found for this account. "
+                   f"Your user ID '{body.donor_id[:8]}...' is not in the donors table. "
+                   f"Please log out, register again at /register, then log in."
+        )
 
-    donor_data = donor_check.data
+    donor_data = donor_check.data[0]
 
     # Check if already registered as milk donor
     existing = supabase.table("milk_donors") \
@@ -519,6 +545,8 @@ class MilkRequestBody(BaseModel):
     hospital_id: str
     infant_name: Optional[str] = None
     daily_quantity_ml: int = Field(..., ge=50, le=5000, description="Daily ML needed (50-5000)")
+    urgency: Optional[str] = "normal"   # 'normal' | 'urgent' | 'critical'
+    pincode: Optional[str] = None
 
 
 @router.post("/requests")
@@ -546,24 +574,37 @@ def post_milk_request(body: MilkRequestBody):
     hosp_name = hosp_data["name"]
     hosp_city = hosp_data.get("city", "")
 
-    # Create the request (use only existing columns)
+    # Create the request
     request_data = {
         "hospital_id":       body.hospital_id,
         "infant_name":       body.infant_name,
         "daily_quantity_ml": body.daily_quantity_ml,
         "status":            "open",
+        "urgency":           (body.urgency or "normal").lower(),
+        "pincode":           body.pincode if body.pincode else None,
     }
 
     try:
         res = supabase.table("milk_requests").insert(request_data).execute()
     except Exception as e:
         logger.error(f"Failed to create milk request: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create milk request")
+        raise HTTPException(status_code=500, detail=f"Failed to create milk request: {str(e)[:200]}")
 
-    if not res.data:
-        raise HTTPException(status_code=500, detail="Failed to post milk request")
-
-    request_id = res.data[0]["id"]
+    # res.data may be empty in some Supabase client versions — re-fetch the row id
+    if res.data:
+        request_id = res.data[0]["id"]
+    else:
+        try:
+            refetch = supabase.table("milk_requests") \
+                .select("id") \
+                .eq("hospital_id", body.hospital_id) \
+                .eq("status", "open") \
+                .order("created_at", desc=True) \
+                .limit(1) \
+                .execute()
+            request_id = refetch.data[0]["id"] if refetch.data else str(uuid.uuid4())
+        except Exception:
+            request_id = str(uuid.uuid4())
 
     # Find and notify all available donors
     donors_res = supabase.table("milk_donors") \
