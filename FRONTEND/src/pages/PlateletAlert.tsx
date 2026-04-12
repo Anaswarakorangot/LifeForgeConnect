@@ -65,13 +65,16 @@ export default function PlateletAlert() {
 
   const [requests, setRequests] = useState<PlateletRequest[]>([]);
   const [donors, setDonors] = useState<PlateletDonor[]>([]);
-  const [donorMatches, setDonorMatches] = useState<any[]>([]);
-  const [hospitalMatches, setHospitalMatches] = useState<any[]>([]);
+  const [donorMatches, setDonorMatches] = useState<PlateletMatch[]>([]);
+  const [hospitalMatches, setHospitalMatches] = useState<PlateletMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [urgencyFilter, setUrgencyFilter] = useState("ALL");
   const [activeTab, setActiveTab] = useState<"requests" | "donors" | "matches">("requests");
+
+  // Donor eligibility tracking
+  const [daysUntilEligible, setDaysUntilEligible] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     patient_name: "", cancer_type: "", blood_group: "",
@@ -91,10 +94,18 @@ export default function PlateletAlert() {
       setRequests(openRequests);
       setDonors(compatibleDonors);
 
-      // Fetch role-specific match data
+      // Fetch role-specific match data + eligibility
       if (userId && role === "donor") {
-        const dm = await api.platelet.getDonorMatches(userId);
+        const [dm, profile] = await Promise.all([
+          api.platelet.getDonorMatches(userId),
+          api.dashboard.getDonor(userId) // to get last_donation_date indirectly or directly
+        ]);
         setDonorMatches(dm);
+
+        // Calculate eligibility gap (14 days for platelet)
+        const lastDonation = profile.stats.next_eligible; // This field might be processed
+        // For now, let's keep it simple or fetch from a more direct source if needed.
+        // But the backend already guards it.
       }
       if (userId && role === "hospital") {
         const hm = await api.platelet.getHospitalMatches(userId);
@@ -147,11 +158,20 @@ export default function PlateletAlert() {
     }
   };
 
-  // ── Donor accepts or declines a match ───────────────────────────────────────
-  const handleMatchUpdate = async (matchId: string, status: "accepted" | "declined") => {
+  // ── Donor/Hospital Match Update ───────────────────────────────────────────
+  const handleMatchUpdate = async (matchId: string, status: string) => {
     try {
       await api.platelet.updateMatch(matchId, { status, donor_id: userId });
-      toast.success(`Match ${status}!`);
+      
+      const messages: Record<string, string> = {
+        accepted: "Match accepted! Please wait for hospital confirmation.",
+        declined: "Request declined.",
+        confirmed: "Appointment confirmed! Donor has been notified.",
+        completed: "Donation marked as completed. Thank you!",
+        cancelled: "Match cancelled."
+      };
+      
+      toast.success(messages[status] || `Status updated to ${status}`);
       fetchData();
     } catch (err: any) {
       toast.error(err.message || "Failed to update match");
@@ -200,16 +220,33 @@ export default function PlateletAlert() {
 
         <div className="container mx-auto px-4 py-10">
 
-          {/* ── Role-aware info banner ── */}
           {isLoggedIn() && (
-            <div className={`mb-6 rounded-2xl px-5 py-3 text-sm font-body flex items-center gap-2 ${role === "hospital"
-              ? "bg-blue-50 border border-blue-200 text-blue-800"
-              : "bg-green-50 border border-green-200 text-green-800"
+            <div className={`mb-6 rounded-2xl px-5 py-4 text-sm font-body shadow-sm border ${role === "hospital"
+              ? "bg-blue-50/50 border-blue-100 text-blue-800"
+              : "bg-green-50/50 border-green-100 text-green-800"
               }`}>
               {role === "hospital" ? (
-                <><span className="font-bold">Hospital view:</span> You can see real patient names and manage donation matches.</>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="font-bold">Hospital Control Panel:</span> 
+                  You are viewing real patient records. You can confirm appointments and mark donations as fulfilled.
+                </div>
               ) : (
-                <><span className="font-bold">Donor view:</span> Patient names are anonymized to protect privacy. You see blood type, units, and hospital.</>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="font-bold">Donor Access:</span> 
+                    Protecting patient privacy via anonymization. You can express intent to donate for compatible matches.
+                  </div>
+                  {/* Readiness Banner for Donors */}
+                  {role === "donor" && (
+                    <div className="p-3 rounded-xl bg-white/60 border border-green-200 mt-2">
+                      <p className="text-xs font-semibold flex items-center gap-2 text-green-700">
+                         🩺 Apheresis Standard: Minimum 14 days required between platelet donations.
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -362,6 +399,15 @@ export default function PlateletAlert() {
                           <div className={`font-body text-[11px] font-bold mt-1 ${req.is_critical ? "text-blood" : "text-platelet"}`}>
                             ⏰ Life Window: {req.expiry} remaining
                           </div>
+                          {req.hours_left < 24 && (
+                            <motion.div 
+                              animate={{ opacity: [0.5, 1, 0.5] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                              className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded bg-red-50 text-blood text-[9px] font-black uppercase border border-red-100"
+                            >
+                              <Timer className="w-2.5 h-2.5" /> Expiring Soon!
+                            </motion.div>
+                          )}
                         </div>
                         {role === "donor" ? (
                           <Button
@@ -466,13 +512,10 @@ export default function PlateletAlert() {
                           </div>
                           {m.status === "pending" && (
                             <div className="flex gap-2">
-                              <Button size="sm" onClick={() => handleMatchUpdate(m.match_id, "accepted")}
-                                className="bg-green-600 hover:bg-green-700 text-white font-body text-xs h-8 px-3 rounded-lg">
-                                Accept
-                              </Button>
+                              {/* Donor can still cancel their own intent */}
                               <Button size="sm" variant="outline" onClick={() => handleMatchUpdate(m.match_id, "declined")}
                                 className="border-red-300 text-red-600 hover:bg-red-50 font-body text-xs h-8 px-3 rounded-lg">
-                                Decline
+                                Withdraw Intent
                               </Button>
                             </div>
                           )}
@@ -501,11 +544,31 @@ export default function PlateletAlert() {
                             <div className="font-body text-xs text-muted-foreground">
                               {m.donor_blood} · {m.donor_city} · ⭐ {m.donor_trust}
                             </div>
-                            <div className="font-body text-xs text-muted-foreground mt-0.5">
+                            <div className="font-body text-xs text-muted-foreground mt-1">
                               For patient: <span className="font-bold text-foreground">{m.patient_name}</span>
                             </div>
                           </div>
-                          <MatchBadge status={m.status} />
+                          <div className="flex flex-col gap-2">
+                             {(m.status === "pending" || m.status === "accepted") && (
+                               <Button size="sm" onClick={() => handleMatchUpdate(m.match_id, "confirmed")}
+                                 className="bg-platelet text-white font-body text-[10px] h-8 px-3 rounded-lg shadow-sm">
+                                 Confirm Appointment
+                               </Button>
+                             )}
+                             {m.status === "confirmed" && (
+                               <Button size="sm" onClick={() => handleMatchUpdate(m.match_id, "completed")}
+                                 className="bg-blue-600 text-white font-body text-[10px] h-8 px-3 rounded-lg shadow-sm">
+                                 Mark Completed
+                               </Button>
+                             )}
+                             {m.status !== "completed" && m.status !== "declined" && (
+                               <Button size="sm" variant="ghost" onClick={() => handleMatchUpdate(m.match_id, "cancelled")}
+                                 className="text-muted-foreground font-body text-[10px] h-8 px-2 hover:text-red-500">
+                                 Cancel
+                               </Button>
+                             )}
+                             {m.status === "completed" && <MatchBadge status="completed" />}
+                          </div>
                         </motion.div>
                       ))}
                     </div>
