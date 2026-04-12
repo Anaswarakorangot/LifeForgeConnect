@@ -141,6 +141,12 @@ export default function MilkBridge() {
     }
     const donorId = getCurrentUserId();
 
+    // Guard: donorId must be a non-empty string
+    if (!donorId) {
+      toast.error("Your session is missing a user ID. Please log out and log in again.");
+      return;
+    }
+
     if (!formData.babyAge || formData.qty <= 0) {
       toast.error("Please fill in baby's age and quantity");
       return;
@@ -149,6 +155,7 @@ export default function MilkBridge() {
     setIsSubmitting(true);
     try {
       const ageM = parseInt(formData.babyAge) || 1;
+      console.log("[MilkBridge] Registering donor with donor_id:", donorId);
       await api.milk.registerDonor({
         donor_id: donorId,
         baby_age_months: ageM,
@@ -166,11 +173,13 @@ export default function MilkBridge() {
       });
       fetchData();
     } catch (error: any) {
+      console.error("[MilkBridge] Register donor error:", error.message);
       toast.error(error.message || "Failed to register as donor");
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   // Handler: Request milk from donor
   const handleRequestDonation = async (donor: MilkDonor) => {
@@ -950,8 +959,8 @@ export default function MilkBridge() {
                       step={50}
                       required
                       className="rounded-xl font-body"
-                      value={shortageFormData.qtyMl}
-                      onChange={(e) => setShortageFormData({ ...shortageFormData, qtyMl: parseInt(e.target.value) })}
+                      value={shortageFormData.qtyMl || ""}
+                      onChange={(e) => setShortageFormData({ ...shortageFormData, qtyMl: Number(e.target.value) || 0 })}
                     />
                   </div>
                   <div className="space-y-1.5">
