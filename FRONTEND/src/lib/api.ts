@@ -161,6 +161,25 @@ export interface PlateletDonor {
     lastApheresis: string; nextAvail: string; city: string;
 }
 
+export interface PlateletMatch {
+    match_id: string;
+    request_id: string;
+    patient_name: string;
+    status: "pending" | "accepted" | "declined" | "confirmed" | "completed" | "cancelled";
+    donor_name: string;
+    donor_blood: string;
+    donor_city: string;
+    donor_trust: number;
+    created_at: string;
+    // For donor view
+    hospital?: string;
+    city?: string;
+    cancer?: string;
+    group?: string;
+    units?: number;
+    urgency?: string;
+}
+
 export interface MarrowMatch {
     id: string; donor_id: string; matchPct: number; confidence: string;
     hlaA: string; hlaB: string; location: string;
@@ -308,8 +327,13 @@ export const api = {
             localStorage.setItem("lf_token", data.access_token);
             localStorage.setItem("lf_user_id", data.user_id);
             localStorage.setItem("lf_role", data.role);
-            // Also sync with AuthContext keys
+            
+            // Critical sync with AuthContext keys
+            localStorage.setItem("lfc_token", data.access_token);
+            localStorage.setItem("lfc_user_id", data.user_id);
             localStorage.setItem("lfc_role", data.role);
+            localStorage.setItem("lfc_orgType", data.role);
+            
             return data;
         },
 
@@ -348,14 +372,37 @@ export const api = {
         getOpenRequests: () =>
             get<BloodRequest[]>("/blood/requests/open"),
 
-        postRequest: (body: { hospital_id: string; blood_group: string; units: number; urgency: string; donor_id?: string; lat?: number; lng?: number }) =>
+        /** Verified hospital posts a general broadcast request */
+        postRequest: (body: { hospital_id: string; blood_group: string; units: number; urgency: string; notes?: string }) =>
             post("/blood/requests", body),
 
+        /** Hospital targets a specific verified donor */
         requestDonor: (body: { hospital_id: string; donor_id: string; blood_group: string; units: number; urgency: string }) =>
             post("/blood/donors/request", body),
 
+        /** Donor accepts or declines a request — pending → accepted | declined */
+        respondToRequest: (body: { request_id: string; donor_id: string; action: "accept" | "decline" }) =>
+            post("/blood/respond", body),
+
+        /** Donor sees compatible open requests (verified donors only) */
         getRequestsForDonor: (donorId: string) =>
             get<BloodRequest[]>("/blood/requests/for-donor", { donor_id: donorId }),
+
+        /** Hospital request management table */
+        getHospitalRequests: (hospitalId: string) =>
+            get("/blood/requests/hospital", { hospital_id: hospitalId }),
+
+        /** Donor history: received / accepted / declined / fulfilled */
+        getDonorHistory: (donorId: string) =>
+            get("/blood/history/donor", { donor_id: donorId }),
+
+        /** Hospital marks a request fulfilled */
+        fulfillRequest: (requestId: string, hospitalId: string) =>
+            req("POST", `/blood/requests/${requestId}/fulfill`, undefined, { hospital_id: hospitalId }),
+
+        /** Hospital manually closes a request */
+        closeRequest: (requestId: string, hospitalId: string) =>
+            req("POST", `/blood/requests/${requestId}/close`, undefined, { hospital_id: hospitalId }),
 
         getShortage: () =>
             get<BloodShortage[]>("/blood/shortage"),
@@ -437,10 +484,10 @@ export const api = {
             patch<{ success: boolean }>(`/platelet/matches/${matchId}`, body),
 
         getDonorMatches: (donorId: string) =>
-            get<any[]>(`/platelet/matches/donor/${donorId}`),
+            get<PlateletMatch[]>(`/platelet/matches/donor/${donorId}`),
 
         getHospitalMatches: (hospitalId: string) =>
-            get<any[]>(`/platelet/matches/hospital/${hospitalId}`),
+            get<PlateletMatch[]>(`/platelet/matches/hospital/${hospitalId}`),
     },
 
     // ── MarrowMatch ─────────────────────────────────────────────────────────────
@@ -601,9 +648,17 @@ export const api = {
 
 // ── Convenience helpers ───────────────────────────────────────────────────────
 
-export const getCurrentUserId = () => localStorage.getItem("lf_user_id") ?? "";
-export const getCurrentRole = () => localStorage.getItem("lf_role") ?? "donor";
-export const isLoggedIn = () => !!localStorage.getItem("lf_token");
+export const getCurrentUserId = () => {
+    return localStorage.getItem("lfc_user_id") || localStorage.getItem("lf_user_id") || "";
+};
+
+export const getCurrentRole = () => {
+    return localStorage.getItem("lfc_role") || localStorage.getItem("lf_role") || "donor";
+};
+
+export const isLoggedIn = () => {
+    return !!(localStorage.getItem("lfc_token") || localStorage.getItem("lf_token"));
+};
 
 
 // ── AI Chat ─────────────────────────────────────────────────────────────────
