@@ -688,7 +688,9 @@ function OrgDashboardRouter() {
 }
 
 export default function Dashboard() {
-  const { role, userName } = useAuth();
+  const { role: contextRole, userName } = useAuth();
+  // Fallback: check localStorage in case AuthContext hasn't synced yet (fixes login→dashboard race)
+  const role = contextRole || (localStorage.getItem("lfc_role") as typeof contextRole);
   if (!role) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center space-y-4">

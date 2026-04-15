@@ -5,6 +5,7 @@ import { Menu, X, Heart, LogOut, LayoutDashboard, Settings, Bell, ChevronDown, C
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/AuthContext";
+import { api } from "@/lib/api";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +41,8 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    logout();
+    api.auth.logout();  // clear localStorage tokens
+    logout();           // clear React state
     navigate("/");
   };
 
