@@ -218,10 +218,6 @@ function DonorRegister() {
               <Input placeholder="400001" value={pincode} onChange={(e) => setPincode(e.target.value)} className="h-11 rounded-xl font-body" />
             </div>
           </div>
-          <Button
-            onClick={() => setStep(2)}
-            className="w-full h-12 bg-gradient-primary text-primary-foreground font-body font-bold rounded-xl shadow-primary"
-          >
           <Button onClick={() => {
             if (!firstName.trim() || !mobile.trim() || !city.trim()) {
               setError("Please fill in your name, mobile number, and city before continuing.");

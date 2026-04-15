@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Heart, Eye, EyeOff, ArrowLeft } from "lucide-react";
@@ -28,7 +28,16 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, role: authRole } = useAuth();
+  const [pendingNav, setPendingNav] = useState(false);
+
+  // Navigate only after AuthContext has confirmed the role update
+  useEffect(() => {
+    if (pendingNav && authRole) {
+      setPendingNav(false);
+      navigate("/dashboard");
+    }
+  }, [pendingNav, authRole, navigate]);
 
   const handleLogin = async (tab: string) => {
     setError("");
@@ -49,7 +58,7 @@ export default function LoginPage() {
         role === "hospital" ? (orgType as any) : undefined,
         profile
       );
-      navigate("/dashboard");
+      setPendingNav(true);
     } catch (e: any) {
       setError(e.message || "Login failed. Check your credentials.");
     } finally {
