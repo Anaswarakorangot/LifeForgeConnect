@@ -46,6 +46,7 @@ function DonorRegister() {
   const [dob, setDob] = useState("");
   const [city, setCity] = useState("");
   const [pincode, setPincode] = useState("");
+  const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
