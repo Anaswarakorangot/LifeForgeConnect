@@ -157,6 +157,7 @@ LifeForgeConnect/
 - Regular transfusion scheduling
 - Compatible donor matching
 - Iron chelation reminders
+-  Permanent donor-patient exclusion: once a donor has donated to a specific patient, they will never be matched to that same patient again, ensuring donor pool diversity and reducing dependency risks
 
 ### LifeForge AI
 - AI-powered chat assistant
