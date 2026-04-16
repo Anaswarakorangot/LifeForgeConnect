@@ -10,13 +10,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/AuthContext";
+import { toast } from "sonner";
 
 const donorTypes = [
   { id: "blood", label: "Blood", emoji: "🩸" },
   { id: "platelet", label: "Platelets", emoji: "⏱️" },
-  { id: "marrow", label: "Bone Marrow", emoji: "🧬" },
-  { id: "plasma", label: "Plasma", emoji: "🧪" },
-  { id: "organ", label: "Organ", emoji: "🫁" },
   { id: "milk", label: "Breast Milk", emoji: "🍼", womenOnly: true },
 ];
 
@@ -37,7 +35,6 @@ function DonorRegister() {
   const [error, setError] = useState("");
   const [otpError, setOtpError] = useState("");
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   // Form fields
   const [firstName, setFirstName] = useState("");
@@ -114,8 +111,8 @@ function DonorRegister() {
         email,
         password,
       });
-      login("donor", firstName || "Donor", undefined, { donor_types: selected });
-      navigate("/dashboard");
+      toast.success("Account created successfully! Please log in to continue.");
+      navigate("/login");
     } catch (e: any) {
       let msg = e.message || "Registration failed";
       if (typeof msg === "object" || msg === "[object Object]") {
@@ -460,7 +457,6 @@ function HospitalRegister() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   // Form fields
   const [name, setName] = useState("");
@@ -498,8 +494,8 @@ function HospitalRegister() {
         contact_email: contactEmail,
         password,
       });
-      login("hospital", name, orgType as any);
-      navigate("/dashboard");
+      toast.success("Account created successfully! Please log in to continue.");
+      navigate("/login");
     } catch (e: any) {
       let msg = e.message || "Registration failed";
       if (typeof msg === "object" || msg === "[object Object]") {
