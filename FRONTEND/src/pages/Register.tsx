@@ -14,9 +14,6 @@ import { useAuth } from "@/hooks/AuthContext";
 const donorTypes = [
   { id: "blood", label: "Blood", emoji: "🩸" },
   { id: "platelet", label: "Platelets", emoji: "⏱️" },
-  { id: "marrow", label: "Bone Marrow", emoji: "🧬" },
-  { id: "plasma", label: "Plasma", emoji: "🧪" },
-  { id: "organ", label: "Organ", emoji: "🫁" },
   { id: "milk", label: "Breast Milk", emoji: "🍼", womenOnly: true },
 ];
 
