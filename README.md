@@ -72,7 +72,7 @@ LifeForge Connect changes that. The donor is matched before Ravi even leaves hom
 
 ---
 
-## ✅ Our Solution: One Platform. Five Life-Saving Modules.
+## ✅ Our Solution: One Platform. Four Life-Saving Modules.
 
 ```
 Hospital raises request  →  AI Engine matches donors  →  Donors receive instant alerts & respond
@@ -86,7 +86,7 @@ Hospital raises request  →  AI Engine matches donors  →  Donors receive inst
 
 ---
 
-## 🧩 5 Modules — Every Critical Donation Need. Covered.
+## 🧩 4 Modules — Every Critical Donation Need. Covered.
 
 ### 🩸 BloodBridge — Real-Time Blood Matching
 A trauma patient requires 3 units of O-negative blood. The hospital enters the request. Nearby compatible donors receive instant alerts. Donors who accept are connected directly with the hospital.
