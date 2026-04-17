@@ -28,12 +28,10 @@
 
 ## 👥 Team DevNova
 
-| Name | Contact |
-|---|---|
-| Amritha S Nidhi | 7012135101 |
-| Anaswara K | 9495636861 |
-| Duddekunta Yuva Hasini | 9392625966 |
-| AVK Bhavan Surya | 9063990119 |
+- Amritha S Nidhi
+- Anaswara K
+- Duddekunta Yuva Hasini
+- AVK Bhavan Surya
 
 ---
 
